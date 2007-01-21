@@ -379,7 +379,7 @@ while (<CMD>) {
 	my $stdev_urx = 0;
 	my $stdev_ury = 0;
 
-	for (my $i=0; $i<$#pages; $i++) {
+	for (my $i=0; $i<=$#pages; $i++) {
 		$average_llx += $pages[$i][0] / @pages;
 	        $average_lly += $pages[$i][1] / @pages;
 	        $average_urx += $pages[$i][2] / @pages;
@@ -388,7 +388,7 @@ while (<CMD>) {
 
 	print "Averages $average_llx $average_lly $average_urx $average_ury \n" if $::opt_debug;
 
-	for (my $i=0; $i<$#pages; $i++) {
+	for (my $i=0; $i<=$#pages; $i++) {
         
 	        $stdev_llx += ( ($pages[$i][0]-$average_llx)**2 ) / @pages;
                 $stdev_lly += ( ($pages[$i][1]-$average_lly)**2 ) / @pages;
@@ -412,7 +412,7 @@ while (<CMD>) {
 
 # Prepare auto-exclusion list
 
-	for (my $i = 0; $i<$#pages; $i++ ) {
+	for (my $i = 0; $i<=$#pages; $i++ ) {
 		if( $pages[$i][0] < $min_llx or
 		    $pages[$i][1] < $min_lly or
 		    $pages[$i][2] > $max_urx or
@@ -451,7 +451,7 @@ while (<CMD>) {
 #Calculate output dimensions
 
   $min_llx = 0; $min_lly = 0; $max_urx = 0; $max_ury = 0;
-  for(my $i=0;$i<$#pages;$i++) {
+  for(my $i=0;$i<=$#pages;$i++) {
  	next if (in_array($i+1, @exclude));
 	 if ($min_llx > $pages[$i][0] or $i == 0 ) { $min_llx = $pages[$i][0]; };
 	 if ($min_lly > $pages[$i][1] or $i == 0 ) { $min_lly = $pages[$i][1]; };
