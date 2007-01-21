@@ -1,0 +1,25 @@
+#summary Application usage
+
+== Modes ==
+TBD
+
+
+== Units ==
+
+`--unit` option indicates units of margin sizes provided by `--margins` option. You can specify one unit common for all margins. All units are internally converted to points. Accepted units:
+
+||unit symbol||unit||units/point||
+||pt||point||1||
+||mm||milimeter||0.3527||
+||cm||centimeter||0.03527||
+||in||inch||0.0138||
+||P||pica||0.083333||
+
+
+== Additional options ==
+
+ * `--verbose` - turns on information messages of cropping process
+ * `--debug` - turns on debug messages. This option automatically forces `--verbose`
+
+= Usage remarks =
+TBD
