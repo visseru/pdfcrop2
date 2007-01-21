@@ -1,0 +1,24 @@
+#summary Instalation manual
+#labels Phase-Deploy
+
+= Installation files =
+
+Installation files can be obtained from [http://code.google.com/p/pdfcrop2/downloads/list Downloads section].
+
+== Naming scheme ==
+Because all files are provided as patches which must match exactly patched file, naming scheme of files is important. Example below provide description:
+
+  * `patch_0.3_pdfcrop_1.5.gz` - patch version 0.3 which should be applied to orginal, unmodified pdfcrop version 1.5
+  * `patch_0.3_patch_0.1_pdfcrop_1.5.gz` - patch version 0.3 which should be applied to pdfcrop v.1.5 already patched by patch version 0.1
+
+== Depreciated files ==
+Files in depreciated section shall not be used. They are recalled because some bugs have been discovered in them.
+
+= Installation manual =
+
+  # Download patch file appropriate for your version of pdfcrop
+  # Place the patch in directory where `pdfcrop.pl` resides
+  # Apply the patch by:
+
+      `patch <zcat patchfile.gz`
+
