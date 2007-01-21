@@ -1,6 +1,10 @@
 #summary Instalation manual
 #labels Phase-Deploy
 
+= TOC =
+ # [http://code.google.com/p/pdfcrop2/wiki/Introduction Introduction]
+ # Installation
+
 = Installation files =
 
 Installation files can be obtained from [http://code.google.com/p/pdfcrop2/downloads/list Downloads section].
@@ -21,4 +25,3 @@ Files in depreciated section shall not be used. They are recalled because some b
   # Apply the patch by:
 
       `patch <zcat patchfile.gz`
-
