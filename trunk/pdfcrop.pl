@@ -26,6 +26,11 @@ my $version     = "1.5";
 my $date        = "2004/06/24";
 my $author      = "Heiko Oberdiek";
 my $copyright   = "Copyright (c) 2002, 2004 by $author.";
+
+my $patchver 	= "0.2";
+my $patchdate	= "2007/01/21";
+my $patchauthor = "Piotr Adacha";
+my $patchcopy	= "Copyright (c) 2007 by $patchauthor.";
 #
 # Reqirements: Perl5, Ghostscript
 # History:
@@ -40,7 +45,7 @@ my $copyright   = "Copyright (c) 2002, 2004 by $author.";
 
 ### program identification
 my $title = "$program $version, $date - $copyright\n";
-
+$title .= "Patch $patchver, $patchdate - $patchcopy\n";
 ### error strings
 my $Error = "!!! Error:"; # error prefix
 
@@ -65,7 +70,12 @@ my $null = devnull();
 my $inputfile   = "";
 my $outputfile  = "";
 my $tmp = "tmp-\L$program\E-$$";
-
+my $confirm_flag = 0;
+my $auto_flag = 0;
+my @exclude;
+my @exclude_auto;
+my @pages;
+my $stdevp_range = 3;
 ### option variables
 my @bool = ("false", "true");
 my %unit = ( 'pt'=>1, 'in'=>0.0138, 'mm'=>0.3527, 'cm' =>0.03527, 'P'=>0.08333333 );
@@ -81,6 +91,8 @@ $::opt_hires      = 0;
 $::opt_papersize  = "";
 $::opt_unit = "pt";
 $::opt_mode = "standard";
+$::opt_exclude = "";
+$::opt_sens = 3;
 
 my $usage = <<"END_OF_USAGE";
 ${title}Syntax:   \L$program\E [options] <input[.pdf]> [output file]
@@ -118,11 +130,23 @@ Options:                                                    (defaults:)
   	              auth - clip size will be calculated based on maximum bbox size
 		      from all pages. Thus, all pages will have same size, 
 		      minimum required to fit all document elements 
+  --exclude "<page1> <page2> ..." 
+		      indicates which pages to exclude from calculations in Auto mode. 
+		      You can put several page numbers here and as well as words "auto"
+		      or "fullauto".
+		      Auto causes pdfclip to stastitically choose pages
+		      to exclude and ask for confirmation for each, wile fullauto means
+		      to confirm all.
+  --sens <sensitivity>
+		      Sensitivity of auto exclusion. Default value is 3. Lower values
+		      exclude more pages larger - less
   
 Examples:
   \L$program\E --margins 10 input.pdf output.pdf
   \L$program\E --margins '5 10 5 20' --clip input.pdf output.pdf
-  \L$program\E --auto input.pdf output.pdf
+  \L$program\E --mode auto input.pdf output.pdf
+  \L$program\E --mode auto --exclude fullauto input.pdf output.pdf
+
 END_OF_USAGE
 
 ### process options
@@ -141,6 +165,8 @@ GetOptions(
   "papersize=s",
   "unit=s",
   "mode=s",
+  "exclude=s",
+  "sens=f",
 ) or die $usage;
 !$::opt_help or die $usage;
 
@@ -205,6 +231,8 @@ $ury = $ury / $unit{$::opt_unit};
 
 print "* Margins: $llx pt $lly pt $urx pt $ury pt\n" if $::opt_debug;
 
+$stdevp_range = $::opt_sens >= 0 ? $::opt_sens : 3 ;
+print "* Sensitivity: $stdevp_range \n" if $::opt_debug;
 
 ### cleanup system
 my @unlink_files = ();
@@ -308,13 +336,8 @@ while (<CMD>) {
         /^$bb:\s*([\.\d]+) ([\.\d]+) ([\.\d]+) ([\.\d]+)/o;
     $page++;
     print "* Page $page: $1 $2 $3 $4\n" if $::opt_verbose;
+    push(@pages, [ ($1, $2, $3, $4) ]);
     
-    if ($min_llx > $1 or $page == 1 ) { $min_llx = $1; };
-    if ($min_lly > $2 or $page == 1 ) { $min_lly = $2; };
-    if ($max_urx < $3 or $page == 1 ) { $max_urx = $3; };
-    if ($max_ury < $4 or $page == 1 ) { $max_ury = $4; };
- 
-    print "* Calculated clip dimensions $min_llx $min_lly $max_urx $max_ury\n" if $::opt_verbose and lc ($::opt_mode) eq "auto";
 
  if ( lc ($::opt_mode) eq "standard" ) {   
     if ($::opt_clip) {
@@ -330,17 +353,129 @@ while (<CMD>) {
 
  if ( lc ($::opt_mode) eq "auto" ) { 
 
+ # Handle page exclusion
+
+ my @exclude_string = split ( /[\s,]+/,  $::opt_exclude);
+
+ foreach my $page_word ( @exclude_string ) {
+	
+	if ( lc($page_word) eq "auto" ) { $auto_flag = 1; next; };
+ 	if ( lc($page_word) eq "fullauto" ) { $auto_flag=1; $confirm_flag = 1; next;};
+	if ( int($page_word) >0 ) { push(@exclude, int($page_word) ); };
+	
+ }
+
+ # If to perform auto exclusion, do some statistics - average dimensions and stdevp 
+ if ( $auto_flag ) {
+
+	print "Auto exclusion enabled \n" if $::opt_debug;
+	
+	my $average_llx = 0;
+  	my $average_lly = 0;
+	my $average_urx = 0;
+	my $average_ury = 0;
+	my $stdev_llx = 0;
+	my $stdev_lly = 0;
+	my $stdev_urx = 0;
+	my $stdev_ury = 0;
+
+	for (my $i=0; $i<$#pages; $i++) {
+		$average_llx += $pages[$i][0] / @pages;
+	        $average_lly += $pages[$i][1] / @pages;
+	        $average_urx += $pages[$i][2] / @pages;
+	        $average_ury += $pages[$i][3] / @pages;
+	};
+
+	print "Averages $average_llx $average_lly $average_urx $average_ury \n" if $::opt_debug;
+
+	for (my $i=0; $i<$#pages; $i++) {
+        
+	        $stdev_llx += ( ($pages[$i][0]-$average_llx)**2 ) / @pages;
+                $stdev_lly += ( ($pages[$i][1]-$average_lly)**2 ) / @pages;
+                $stdev_urx += ( ($pages[$i][2]-$average_urx)**2 ) / @pages;
+                $stdev_ury += ( ($pages[$i][3]-$average_ury)**2 ) / @pages;
+        };
+	
+	print "Deviations $stdev_llx $stdev_lly $stdev_urx $stdev_ury \n" if $::opt_debug;
+
+        $stdev_llx = sqrt( $stdev_llx);
+        $stdev_lly = sqrt( $stdev_lly);
+        $stdev_urx = sqrt( $stdev_urx);
+        $stdev_ury = sqrt( $stdev_ury);
+	
+	$min_llx = $average_llx - ( $stdevp_range * $stdev_llx );
+        $min_lly = $average_lly - ( $stdevp_range * $stdev_lly );
+        $max_urx = $average_urx + ( $stdevp_range * $stdev_urx );
+        $max_ury = $average_ury + ( $stdevp_range * $stdev_ury );
+
+	print "Estimated rational dimensions $min_llx $min_lly $max_urx $max_ury \n" if $::opt_debug;
+
+# Prepare auto-exclusion list
+
+	for (my $i = 0; $i<$#pages; $i++ ) {
+		if( $pages[$i][0] < $min_llx or
+		    $pages[$i][1] < $min_lly or
+		    $pages[$i][2] > $max_urx or
+		    $pages[$i][3] > $max_ury ) {
+
+			push(@exclude_auto, $i+1);
+			my $j=$i + 1;
+			print "Excluding page $j  from calculations\n" if $::opt_verbose;
+
+		}
+	
+	}
+# Request user confirmation for each page
+	if( $confirm_flag ) { 
+		push(@exclude, @exclude_auto); 
+	} else {
+		print " ".@exclude_auto." pages estimated for exclusion\n";
+
+		foreach my $i (@exclude_auto) {
+
+			next if ( in_array($i, @exclude) );
+
+			print "Confrim exlusion of page $i from calculations [y/N]:";
+			my $answer = <STDIN>;
+			chomp($answer); 
+	
+			if (lc($answer) eq "y" or lc($answer) eq "yes") {
+				print "Page $i excluded\n";
+				push (@exclude, $i);
+			}
+
+		}
+	}
+
+  }
+#Calculate output dimensions
+
+  $min_llx = 0; $min_lly = 0; $max_urx = 0; $max_ury = 0;
+  for(my $i=0;$i<$#pages;$i++) {
+ 	next if (in_array($i+1, @exclude));
+	 if ($min_llx > $pages[$i][0] or $i == 0 ) { $min_llx = $pages[$i][0]; };
+	 if ($min_lly > $pages[$i][1] or $i == 0 ) { $min_lly = $pages[$i][1]; };
+	 if ($max_urx < $pages[$i][2] or $i == 0 ) { $max_urx = $pages[$i][2]; };
+	 if ($max_ury < $pages[$i][3] or $i == 0 ) { $max_ury = $pages[$i][3]; };
+  }
+
+  print "Output dimensions: $min_llx $min_lly $max_urx $max_ury\n" if $::opt_verbose;
+  
+
    for(my $i=1;$i<=$page;$i++) {
-     if ($::opt_clip) {
-       print TMP "\\pageclip $i [$min_llx $min_lly $max_urx $max_ury][$llx $lly $urx $ury]\n";
-      }
-    else {
-        my ($a, $b, $c, $d) = ($min_llx - $llx, $min_lly - $ury, $max_urx + $urx, $max_ury + $lly);
-        print TMP "\\page $i [$a $b $c $d]\n";
-    }
+
+        if ($::opt_clip) {
+          print TMP "\\pageclip $i [$min_llx $min_lly $max_urx $max_ury][$llx $lly $urx $ury]\n";
+        }
+        else {
+          my ($a, $b, $c, $d) = ($min_llx - $llx, $min_lly - $ury, $max_urx + $urx, $max_ury + $lly);
+          print TMP "\\page $i [$a $b $c $d]\n";
+        }
 
    }
+
  }
+
 close(CMD);
 }
 
@@ -405,4 +540,14 @@ print "==> $page pages written on `$outputfile'.\n";
 $exit_code = 0;
 cleanup();
 
+sub in_array() {
+    my $val = shift(@_);
+     
+    foreach my $elem(@_) {
+        if($val == $elem) {
+            return 1;
+        }
+    }
+    return 0;
+}
 __END__
