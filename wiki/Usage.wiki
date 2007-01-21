@@ -1,9 +1,15 @@
 #summary Application usage
 
-== Modes ==
-TBD
+= Modes =
+== Standard ==
+== Absolute ==
+== Auto ==
+== Excluding pages for auto mode ==
+=== Manual exclusion ===
+=== Automatic exclusion ===
 
-
+= Additional options =
+ 
 == Units ==
 
 `--unit` option indicates units of margin sizes provided by `--margins` option. You can specify one unit common for all margins. All units are internally converted to points. Accepted units:
@@ -15,8 +21,7 @@ TBD
 ||in||inch||0.0138||
 ||P||pica||0.083333||
 
-
-== Additional options ==
+== Misc ==
 
  * `--verbose` - turns on information messages of cropping process
  * `--debug` - turns on debug messages. This option automatically forces `--verbose`
