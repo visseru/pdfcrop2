@@ -1,0 +1,30 @@
+#summary Description of project
+#labels Phase-Design,Phase-Requirements
+
+= Introduction =
+
+== What is pdfcrop? ==
+pdfcrop is a perl script written by Heiko Oberdiek which crops pages of PDF documents to the size of visible page elements. In addition it can add some user-defined margins. pdfcrop needs [http://www.cs.wisc.edu/~ghost/ GhostScript] and [http://en.wikipedia.org/wiki/PdfTeX pdfTeX] to work. 
+
+== What is this patch for? ==
+pdfcrop measures and crops each page individually. This approach is not suitable when you would like to print using some automatic scaling feature like "Fit to page" because it causes pages to be scaled with different scale ratio. Thus, at output fonts or other elements can differ between pages where they should be same size. 
+
+The patch (pdfcrop2) provides different cropping approach which solve problems mentioned above while preserving orginal mode. It also add some minor features. 
+
+= Features =
+
+== Three cropping modes ==
+  # *Standard* - the way in which orginal pdfcrop works
+  # *Auto* - the script calculates minimum bounding-box for whole document. Each page is cropped to the same dimensions, minimum which can fit elements on each page of document.
+  # *Absolute* - the way in which Free PDF Tools (on Windows) works - the script gets paper dimensions via pdfinfo tool (available with xpdf). Values provided by margin option are subtracted from paper dimensions, thus they means how much to cut out from each side of the page.
+
+== Intelligent auto and semi-auto mode ==
+Because some PDFs are crippled, for example text flows out into the margins on some pages or some pages have more elements than average and you are not interested in keeping them, you can specify pages which will not be taken into accout in calculations of *Auto* mode.
+  * User can exclude pages manually
+  * Pages can be excludend automatally based on statistical analysis. 
+  * User can confirm each page exclusion separately as well as confirm all exclusions at once.
+  * Both modes (manual and automatic) can be mixed.
+
+== Units support ==
+In addition to orginal *point* units in margin dimensions you can use milimeters, centimeters, inches and pica.
+
