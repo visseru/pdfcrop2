@@ -1,5 +1,5 @@
 #summary Description of project
-#labels Phase-Design,Phase-Requirements
+#labels Phase-Design,Phase-Requirements,Featured
 
 = TOC =
  # Introduction
@@ -31,6 +31,5 @@ Because some PDFs are crippled, for example text flows out into the margins on s
 
 == Units support ==
 In addition to orginal *point* units in margin dimensions you can use milimeters, centimeters, inches and pica.
-
 
 
