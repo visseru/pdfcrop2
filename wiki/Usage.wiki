@@ -1,10 +1,19 @@
 #summary Application usage
 
 = Modes =
+The patch provides new option `--mode` which allows you to choose pdfcrop cropping approach. This option can have one of three values: `standard`, `absolute`, `auto`. Standard mode is default one.
 == Standard ==
+In standard mode pdfcrop act as orginal one, thus it measures bounding-box (the minimal area where actual visible objects fit in) for each page individually, add defined margins to measured dimensions and do a crop. Thus, each page has different size, *size of visible objects plus margins*.
+Standar mode requires GhostScript and pdfTeX.
 == Absolute ==
+Absolute mode causes pdfcrop to get paper size of first page using *pdfinfo* tool. Then, it calculates cropping box by *subtracting given margins from page dimensions*. Thus, in this mode, `--margins` option provides information, how much to crop from page size from each side.
+Absolute mode requires pdfinfo (part of Xpdf package) and pdfTeX.
 == Auto ==
+In auto mode pdfcrop gets bounding-box of each page. Then, cropping box is calculated to fit in every element of each page. This cropping box is common for all pages. Because of that, output pages have same size, suitable for printing with _Fit to page_ scaling.
+
 == Excluding pages for auto mode ==
+Because some PDFs are crippled, bad formated etc. and some text can flow out to margins, or there are annotations at margins of some pages which you do not want to keep, using auto mode you can exclude some pages from cropping-box calculations. It is likely that text on one crippled page will be cropped in place where it 'runs out' but cropping-box will have more rational dimensions. That is - the text which 'runs out' does not cause cropping-box to resize to its size, cropping whole document in more rational way.
+
 === Manual exclusion ===
 === Automatic exclusion ===
 
@@ -28,3 +37,4 @@
 
 = Usage remarks =
 TBD
+
