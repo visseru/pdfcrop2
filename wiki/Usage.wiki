@@ -1,4 +1,5 @@
 #summary Application usage
+#labels Featured
 
 = Modes =
 The patch provides new option `--mode` which allows you to choose pdfcrop cropping approach. This option can have one of three values: `standard`, `absolute`, `auto`. Standard mode is default one.
