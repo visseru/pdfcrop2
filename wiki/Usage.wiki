@@ -53,3 +53,5 @@ You can mix auto and manual mode. In such case, collections of pages from auto a
 = Usage remarks =
 TBD
 
+= Usage examples =
+TBD
