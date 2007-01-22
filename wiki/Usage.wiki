@@ -12,10 +12,25 @@ Absolute mode requires pdfinfo (part of Xpdf package) and pdfTeX.
 In auto mode pdfcrop gets bounding-box of each page. Then, cropping box is calculated to fit in every element of each page. This cropping box is common for all pages. Because of that, output pages have same size, suitable for printing with _Fit to page_ scaling.
 
 == Excluding pages for auto mode ==
-Because some PDFs are crippled, bad formated etc. and some text can flow out to margins, or there are annotations at margins of some pages which you do not want to keep, using auto mode you can exclude some pages from cropping-box calculations. It is likely that text on one crippled page will be cropped in place where it 'runs out' but cropping-box will have more rational dimensions. That is - the text which 'runs out' does not cause cropping-box to resize to its size, cropping whole document in more rational way.
+Because some PDFs are crippled, bad formated etc. and some text can flow out to margins, or there are annotations at margins of some pages which you do not want to keep, using auto mode you can exclude some pages from cropping-box calculations to avoid unncessary cropping-box enlargement. That is - the text which 'runs out' does not cause cropping-box to fit it, cropping whole document in more rational way.
 
 === Manual exclusion ===
+To exclude some pages manually use `--exclude` option with list of pages (separated by whitespace or comma and enclosed in doublequotes), for example
+  `--exclude "12 43 48"` 
+will exclude pages 12, 43 and 48. The pages do not need to be ordered in exlude option.
+
 === Automatic exclusion ===
+Automatic exclusion feture is based on statistical calculations and automatically pick pages to exclude. To use auto exclusion enter word `auto` as `--exclude` argument, like:
+  `--exclude auto`
+User will be asked for confirmation before selected pages will be really excluded. To assume confirmation for all pages, use "fullauto" instead of "auto", like:
+  `--exclude fullauto`
+Now, all pages selected by script to exclusion will be automatically excluded without any further questions.
+
+You can change sensitivity of auto-exclusion mechanism using `--sens` option. Default sensitivity value is 3, while lower values (down to 0) will raise sensitivity and higher values will lower it.
+
+=== Mixed exclusion ===
+You can mix auto and manual mode. In such case, collections of pages from auto and manual selection will be logically sumed. Confirmation for pages selected in auto mode and simultaneously present in manually selected collection will not be asked (unless you use `fullauto` - then all pages will be assumed confirmed).
+
 
 = Additional options =
  
