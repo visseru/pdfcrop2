@@ -1,6 +1,12 @@
 #summary Application usage
 #labels Featured
 
+= TOC =
+ # [http://code.google.com/p/pdfcrop2/wiki/Introduction Introduction]
+ # Installation
+ # [http://code.google.com/p/pdfcrop2/wiki/Usage Usage]
+ # [http://code.google.com/p/pdfcrop2/wiki/Changelog Changelog]
+
 = Modes =
 The patch provides new option `--mode` which allows you to choose pdfcrop cropping approach. This option can have one of three values: `standard`, `absolute`, `auto`. Standard mode is default one.
 == Standard ==
