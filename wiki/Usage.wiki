@@ -62,10 +62,10 @@ TBD
 
 = Usage examples =
   `pdfcrop.pl --mode auto input.pdf output.pdf`
-Will crop your PDF to size which elements on every page fits in.
-  `pdfcrop.pl --mode auto --margins 1 --unit cm input.pdf output.pdf
-This crops your PDF to size which elements on every page fits in with 1cm margins on each side.
-  `pdfcrop.pl --mode auto --exclude fullauto input.pdf output.pdf
+will crop your PDF to size which elements on every page fits in.
+  `pdfcrop.pl --mode auto --margins 1 --unit cm input.pdf output.pdf`
+this crops your PDF to size which elements on every page fits in with 1cm margins on each side.
+  `pdfcrop.pl --mode auto --exclude fullauto input.pdf output.pdf`
 will crop PDF to size which elements on every page fits in, trying to ignore broken margins without any questions.
-  `pdfcrop.pl --mode absolute --margins "1 2" --unit cm input.pdf output.pdf 
+  `pdfcrop.pl --mode absolute --margins "1 2" --unit cm input.pdf output.pdf `
 will cut out 1cm from left and rigth and 2cm from top and bottom of the page.
