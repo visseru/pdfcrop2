@@ -4,6 +4,8 @@
 = TOC =
  # [http://code.google.com/p/pdfcrop2/wiki/Introduction Introduction]
  # Installation
+ # [http://code.google.com/p/pdfcrop2/wiki/Usage Usage]
+ # [http://code.google.com/p/pdfcrop2/wiki/Changelog Changelog]
 
 = Installation files =
 
