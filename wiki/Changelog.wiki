@@ -1,5 +1,11 @@
 #summary Changelog
 
+= TOC =
+ # [http://code.google.com/p/pdfcrop2/wiki/Introduction Introduction]
+ # [http://code.google.com/p/pdfcrop2/wiki/Installation Installation]
+ # [http://code.google.com/p/pdfcrop2/wiki/Usage usage]
+ # Changelog
+
 = Changelog =
 
 == v 0.3 ==
