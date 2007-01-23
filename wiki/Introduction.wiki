@@ -4,6 +4,8 @@
 = TOC =
  # Introduction
  # [http://code.google.com/p/pdfcrop2/wiki/Installation Installation]
+ # [http://code.google.com/p/pdfcrop2/wiki/Usage Usage]
+ # [http://code.google.com/p/pdfcrop2/wiki/Changelog Changelog]
 
 = Introduction =
 
@@ -31,5 +33,4 @@ Because some PDFs are crippled, for example text flows out into the margins on s
 
 == Units support ==
 In addition to orginal *point* units in margin dimensions you can use milimeters, centimeters, inches and pica.
-
 
