@@ -26,4 +26,4 @@ Files in depreciated section shall not be used. They are recalled because some b
   # Place the patch in directory where `pdfcrop.pl` resides
   # Apply the patch by:
 
-      `patch <zcat patchfile.gz`
+      `zcat patchfile.gz | patch `
