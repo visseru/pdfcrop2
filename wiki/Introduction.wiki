@@ -27,10 +27,9 @@ The patch (pdfcrop2) provides different cropping approach which solve problems m
 == Intelligent auto and semi-auto mode ==
 Because some PDFs are crippled, for example text flows out into the margins on some pages or some pages have more elements than average and you are not interested in keeping them, you can specify pages which will not be taken into accout in calculations of *Auto* mode.
   * User can exclude pages manually
-  * Pages can be excludend automatally based on statistical analysis. 
+  * Pages can be excludend automatically based on statistical analysis. 
   * User can confirm each page exclusion separately as well as confirm all exclusions at once.
   * Both modes (manual and automatic) can be mixed.
 
 == Units support ==
 In addition to orginal *point* units in margin dimensions you can use milimeters, centimeters, inches and pica.
-
