@@ -17,8 +17,12 @@ Absolute mode causes pdfcrop to get paper size of first page using *pdfinfo* too
 Absolute mode requires pdfinfo (part of Xpdf package) and pdfTeX.
 == Auto ==
 In auto mode pdfcrop gets bounding-box of each page. Then, cropping box is calculated to fit in every element of each page. This cropping box is common for all pages. Because of that, output pages have same size, suitable for printing with _Fit to page_ scaling.
+_Cropping box is calculated as follows: if page elements sticks out from cropping box at specific side of cropping box, cropping box on this side is stretched to fit elements._
+== Auto 2 ==
+In auto2 mode pdfcrop gets bounding-box of each page. Then, cropping box is calculated to fit in every element of each page. This cropping box is common for all pages. Because of that, output pages have same size, suitable for printing with _Fit to page_ scaling.
+_Cropping box is calculated as follows: Cropping box is aligned to a corner of the current bounding-box. If some elements still stick out, cropping box is resized to fit them in._
 
-== Excluding pages for auto mode ==
+== Excluding pages for auto and auto2 mode ==
 Because some PDFs are crippled, bad formated etc. and some text can flow out to margins, or there are annotations at margins of some pages which you do not want to keep, using auto mode you can exclude some pages from cropping-box calculations to avoid unncessary cropping-box enlargement. That is - the text which 'runs out' does not cause cropping-box to fit it, cropping whole document in more rational way.
 
 === Manual exclusion ===
@@ -34,6 +38,8 @@ User will be asked for confirmation before selected pages will be really exclude
 Now, all pages selected by script to exclusion will be automatically excluded without any further questions.
 
 You can change sensitivity of auto-exclusion mechanism using `--sens` option. Default sensitivity value is 3, while lower values (down to 0) will raise sensitivity and higher values will lower it.
+
+_Sensitivity is increased twice in Auto2 mode - this is done by purpose, as two bounding-box sides influences horizontal or vertical dimension of cropping box, while in auto mode only one side of bounding-box decide._
 
 === Mixed exclusion ===
 You can mix auto and manual mode. In such case, collections of pages from auto and manual selection will be logically sumed. Confirmation for pages selected in auto mode and simultaneously present in manually selected collection will not be asked (unless you use `fullauto` - then all pages will be assumed confirmed).
@@ -56,6 +62,9 @@ You can mix auto and manual mode. In such case, collections of pages from auto a
 
  * `--verbose` - turns on information messages of cropping process
  * `--debug` - turns on debug messages. This option automatically forces `--verbose`
+
+== Alignment ==
+In auto2 mode you can decide to which corner of cropping box align pages which elements are smaller than it. Use option `--align` with one of parameters: `lt`, `rt`, `lb`, `rb` which means left-top, right-top, left-bottom, right-bottom corner of the cropping box.
 
 = Usage remarks =
 TBD
