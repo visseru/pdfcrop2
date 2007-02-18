@@ -21,11 +21,12 @@ The patch (pdfcrop2) provides different cropping approach which solve problems m
 
 == Three cropping modes ==
   # *Standard* - the way in which orginal pdfcrop works
-  # *Auto* - the script calculates minimum bounding-box for whole document. Each page is cropped to the same dimensions, minimum which can fit elements on each page of document.
+  # *Auto* - the script calculates minimum bounding-box for whole document. Each page is cropped to the same dimensions, minimum which can fit elements on each page of document. The cropping box is resized every time one of bounding-box coordinates sticks out of current cropping box coordinates.
+  # *Auto2* - the script calculates minimum bounding-box for whole document like in Auto mode, however, for each page cropping box is first moved to cover as much bounding-box as it can. If some elements still do not fit in, cropping-box is resized.
   # *Absolute* - the way in which Free PDF Tools (on Windows) works - the script gets paper dimensions via pdfinfo tool (available with xpdf). Values provided by margin option are subtracted from paper dimensions, thus they means how much to cut out from each side of the page.
 
 == Intelligent auto and semi-auto mode ==
-Because some PDFs are crippled, for example text flows out into the margins on some pages or some pages have more elements than average and you are not interested in keeping them, you can specify pages which will not be taken into accout in calculations of *Auto* mode.
+Because some PDFs are crippled, for example text flows out into the margins on some pages or some pages have more elements than average and you are not interested in keeping them, you can specify pages which will not be taken into accout in calculations of *Auto* and *Auto2* mode.
   * User can exclude pages manually
   * Pages can be excludend automatically based on statistical analysis. 
   * User can confirm each page exclusion separately as well as confirm all exclusions at once.
