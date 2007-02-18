@@ -27,8 +27,8 @@ my $date        = "2004/06/24";
 my $author      = "Heiko Oberdiek";
 my $copyright   = "Copyright (c) 2002, 2004 by $author.";
 
-my $patchver 	= "0.2";
-my $patchdate	= "2007/01/21";
+my $patchver 	= "0.4";
+my $patchdate	= "2007/02/18";
 my $patchauthor = "Piotr Adacha";
 my $patchcopy	= "Copyright (c) 2007 by $patchauthor.";
 #
@@ -93,6 +93,7 @@ $::opt_unit = "pt";
 $::opt_mode = "standard";
 $::opt_exclude = "";
 $::opt_sens = 3;
+$::opt_align = "lt";
 
 my $usage = <<"END_OF_USAGE";
 ${title}Syntax:   \L$program\E [options] <input[.pdf]> [output file]
@@ -115,7 +116,7 @@ Options:                                                    (defaults:)
   --papersize <foo>   parameter for gs's -sPAPERSIZE=<foo>,
                       use only with older gs versions <7.32 ($::opt_papersize)
   --unit <unitname>   set margins unit (pt, in, mm, cm, P) ($::opt_unit)
-  --mode <standard | absolute | auto> ($::opt_mode)
+  --mode <standard | absolute | auto | auto2> ($::opt_mode)
 		      pick crop mode :
 
 		      standard - orginal pdfcrop working mode - each page is cropped
@@ -127,9 +128,18 @@ Options:                                                    (defaults:)
 		      same size. Margin option set cropping box (i. e. how much to crop
                       from each side
 
-  	              auth - clip size will be calculated based on maximum bbox size
+  	              auto - clip size will be calculated based on maximum bbox dimensions
 		      from all pages. Thus, all pages will have same size, 
 		      minimum required to fit all document elements 
+
+		      auto2 - clip size will be calculated based on maximum bbox size
+		      from all pages. Thus, all pages will have same size, 
+		      minimum required to fit all document elements This differs from auto mode
+			- while in auto mode output size is stretched to fit all page elements,
+  		 	in auto2 mode, bbox is first moved to fit actual elements and then
+		      resized, if required. This should result in bit smaller pages than
+		      auto mode.
+	
   --exclude "<page1> <page2> ..." 
 		      indicates which pages to exclude from calculations in Auto mode. 
 		      You can put several page numbers here and as well as words "auto"
@@ -140,7 +150,10 @@ Options:                                                    (defaults:)
   --sens <sensitivity>
 		      Sensitivity of auto exclusion. Default value is 3. Lower values
 		      exclude more pages larger - less
-  
+
+  --align <lt | lb | rt | rb > ($::opt_align)
+		      Used only in auto2 mode, decides to which page corner align page contents. 
+		      l - left, t - top , r - rigth, b - bottom
 Examples:
   \L$program\E --margins 10 input.pdf output.pdf
   \L$program\E --margins '5 10 5 20' --clip input.pdf output.pdf
@@ -167,6 +180,7 @@ GetOptions(
   "mode=s",
   "exclude=s",
   "sens=f",
+  "align=s",
 ) or die $usage;
 !$::opt_help or die $usage;
 
@@ -475,6 +489,155 @@ while (<CMD>) {
    }
 
  }
+
+ # auto2 mode moves box rather than resize it to fit text on the page
+ if (lc ($::opt_mode) eq "auto2" ) {
+
+# Handle page exclusion
+
+ my @exclude_string = split ( /[\s,]+/,  $::opt_exclude);
+ my $max_sizex = 0;
+ my $max_sizey = 0;
+
+ foreach my $page_word ( @exclude_string ) {
+	
+	if ( lc($page_word) eq "auto" ) { $auto_flag = 1; next; };
+ 	if ( lc($page_word) eq "fullauto" ) { $auto_flag=1; $confirm_flag = 1; next;};
+	if ( int($page_word) >0 ) { push(@exclude, int($page_word) ); };
+	
+ }
+
+ # If to perform auto exclusion, do some statistics - average dimensions and stdevp 
+ if ( $auto_flag ) {
+
+	print "Auto exclusion enabled \n" if $::opt_debug;
+	
+	my $average_sizex = 0;
+  	my $average_sizey = 0;
+	my $stdev_sizex = 0;
+	my $stdev_sizey = 0;
+
+
+	for (my $i=0; $i<=$#pages; $i++) {
+		$average_sizex += abs ($pages[$i][2] - $pages[$i][0] ) / @pages;
+	        $average_sizey += abs ($pages[$i][3] - $pages[$i][1] ) / @pages;
+	};
+
+	print "Averages $average_sizex $average_sizey  \n" if $::opt_debug;
+
+	for (my $i=0; $i<=$#pages; $i++) {
+        
+	        $stdev_sizex += ( ($pages[$i][2] - $pages[$i][0] - $average_sizex)**2 ) / @pages;
+                $stdev_sizey += ( ($pages[$i][3] - $pages[$i][1] - $average_sizey)**2 ) / @pages;
+        };
+	
+	
+
+        $stdev_sizex = sqrt( $stdev_sizex);
+        $stdev_sizey = sqrt( $stdev_sizey);
+
+	print "Deviations $stdev_sizex $stdev_sizey  \n" if $::opt_debug;
+	
+	# sensitivity is increased twice, as two dimensions influence x or y size
+	$max_sizex = $average_sizex + ( $stdevp_range * $stdev_sizex / 2 ); 
+        $max_sizey = $average_sizey + ( $stdevp_range * $stdev_sizey / 2 ); 
+
+	print "Estimated rational page size $max_sizex $max_sizey  \n" if $::opt_debug;
+
+# Prepare auto-exclusion list
+
+	for (my $i = 0; $i<=$#pages; $i++ ) {
+		if(  abs ( $pages[$i][2] - $pages[$i][0] ) > $max_sizex or
+		    abs ( $pages[$i][3] - $pages[$i][1] ) > $max_sizey ) {
+
+			push(@exclude_auto, $i+1);
+			my $j=$i + 1;
+			print "Excluding page $j  from calculations\n" if $::opt_verbose;
+
+		}
+	
+	}
+# Request user confirmation for each page
+	if( $confirm_flag ) { 
+		push(@exclude, @exclude_auto); 
+	} else {
+		print " ".@exclude_auto." pages estimated for exclusion\n";
+
+		foreach my $i (@exclude_auto) {
+
+			next if ( in_array($i, @exclude) );
+
+			print "Confrim exlusion of page $i from calculations [y/N]:";
+			my $answer = <STDIN>;
+			chomp($answer); 
+	
+			if (lc($answer) eq "y" or lc($answer) eq "yes") {
+				print "Page $i excluded\n";
+				push (@exclude, $i);
+			}
+
+		}
+	}
+
+  }
+#Calculate output dimensions
+
+  $min_llx = 0; $min_lly = 0; $max_urx = 0; $max_ury = 0; $max_sizex = 0; $max_sizey =0;
+
+  for(my $i=0;$i<=$#pages;$i++) {
+ 	next if (in_array($i+1, @exclude));
+	 if ($max_sizex < abs ($pages[$i][2] - $pages[$i][0] ) or $i == 0 ) { $max_sizex = abs ($pages[$i][2] - $pages[$i][0] ); };
+	 if ($max_sizey < abs ($pages[$i][3] - $pages[$i][1] ) or $i == 0 ) { $max_sizey = abs ($pages[$i][3] - $pages[$i][1] ); };
+  }
+
+  print "Output page size: $max_sizex $max_sizey\n" if $::opt_verbose;
+  
+
+   for(my $i=0;$i<=$#pages;$i++) {
+
+	if (lc ($::opt_align)  eq "lt" ) {
+			$min_llx = $pages[$i][0];
+			$max_ury = $pages[$i][3];	
+			$min_lly = $max_ury - $max_sizey;
+			$max_urx = $min_llx + $max_sizex;
+	}
+		
+	if (lc ($::opt_align)  eq "lb" ) {
+			$min_llx = $pages[$i][0];
+			$min_lly = $pages[$i][1];
+			$max_ury = $min_lly + $max_sizey;
+			$max_urx = $min_llx + $max_sizex;
+	}
+
+	if (lc ($::opt_align)  eq "rt" ) {
+			$max_urx = $pages[$i][2];
+			$max_ury = $pages[$i][3];
+			$min_lly = $max_ury - $max_sizey;
+			$min_llx = $max_urx - $max_sizex;
+	}
+
+	if (lc ($::opt_align)  eq "rb" ) {
+			$max_urx = $pages[$i][2];
+			$min_lly = $pages[$i][1];
+			$max_ury = $min_lly + $max_sizey;
+			$min_llx = $max_urx - $max_sizex;
+	}
+	
+	my $j = $i + 1; 
+
+        if ($::opt_clip) {
+		
+          print TMP "\\pageclip $j [$min_llx $min_lly $max_urx $max_ury][$llx $lly $urx $ury]\n";
+        }
+        else {
+          my ($a, $b, $c, $d) = ($min_llx - $llx, $min_lly - $ury, $max_urx + $urx, $max_ury + $lly);
+          print TMP "\\page $j [$a $b $c $d]\n";
+        }
+
+   }
+
+
+}
 
 close(CMD);
 }
